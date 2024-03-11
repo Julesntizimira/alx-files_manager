@@ -21,7 +21,7 @@ class UsersController {
     } else {
       const hashedPassword = sha1(password);
       myCollection.insertOne({ email, password: hashedPassword }).then((resp) => {
-        res.status(201).json({ _id: resp.insertedId, email });
+        res.status(201).json({ id: resp.insertedId, email });
       });
     }
   }

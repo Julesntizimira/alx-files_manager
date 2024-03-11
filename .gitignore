@@ -2,3 +2,5 @@ babel.config.js
 .eslintrc.js
 package-lock.json
 node_modules
+files_manager@1.0.0
+package.json

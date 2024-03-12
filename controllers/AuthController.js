@@ -12,6 +12,10 @@ class AuthController {
       const creds = decodedToken.split(':');
       const email = creds[0];
       const password = creds[1];
+      if (!email || !password) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
       const myCollection = dbClient.client.db().collection('users');
       const user = await myCollection.findOne({ email });
       if (user) {
@@ -32,10 +36,8 @@ class AuthController {
     if (userId) {
       await redisClient.del(`auth_${token}`);
       res.status(204);
-      return;
     } else {
       res.status(401).json({ error: 'Unauthorized' });
-      return;
     }
   }
 }

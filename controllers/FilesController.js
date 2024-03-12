@@ -63,6 +63,65 @@ class FilesController {
       id: resp.insertedId, userId: owner, name, type, isPublic, parentId: fileObj.parentId,
     });
   }
+
+  static async getShow(req, res) {
+    const token = req.headers['x-token'];
+    const userId = await redisClient.get(`auth_${token}`);
+    if (!userId) {
+      console.log('hello');
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const owner = new ObjectId(String(userId));
+    const { id } = req.params;
+    const fileCollection = dbClient.client.db().collection('files');
+    const file = await fileCollection.findOne({ _id: new ObjectId(String(id)), userId: owner });
+    if (!file) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+    res.status(200).json({
+      id: file._id,
+      userId: file.userId,
+      name: file.name,
+      type: file.type,
+      isPublic: file.isPublic,
+      parentId: file.parentId,
+    });
+  }
+
+  static async getIndex(req, res) {
+    const token = req.headers['x-token'];
+    const userId = await redisClient.get(`auth_${token}`);
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const owner = new ObjectId(String(userId));
+    const { parentId = 0, page = 0 } = req.query;
+    const fileCollection = dbClient.client.db().collection('files');
+    const pageSize = 20;
+    const pageNumber = parseInt(page, 10);
+    const pipeline = [
+      { $match: { parentId } },
+      { $match: { userId: owner } },
+      { $skip: pageNumber * pageSize },
+      { $limit: pageSize },
+      {
+        $project: {
+          id: '$_id',
+          userId: 1,
+          name: 1,
+          type: 1,
+          isPublic: 1,
+          parentId: 1,
+          _id: 0,
+        },
+      },
+    ];
+    const files = await fileCollection.aggregate(pipeline).toArray();
+    res.status(200).json(files);
+  }
 }
 
 module.exports = FilesController;

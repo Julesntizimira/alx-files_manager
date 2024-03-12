@@ -30,12 +30,12 @@ class FilesController {
       return;
     }
     if (parentId) {
-      const parentFile = await fileCollection.findOne({ _id: new ObjectId(String(parentId)) });
-      if (!parentFile) {
+      const parentFolder = await fileCollection.findOne({ _id: new ObjectId(String(parentId)) });
+      if (!parentFolder) {
         res.status(400).json({ error: 'Parent not found' });
         return;
       }
-      if (parentFile.type !== 'folder') {
+      if (parentFolder.type !== 'folder') {
         res.status(400).json({ error: 'Parent is not a folder' });
         return;
       }
@@ -53,6 +53,7 @@ class FilesController {
       return;
     }
     const path = process.env.FOLDER_PATH || '/tmp/files_manager';
+    await fs.promises.mkdir(path, { recursive: true });
     const localPath = `${path}/${uuidv4()}`;
     const fileBfuffer = Buffer.from(data, 'base64');
     fs.writeFileSync(localPath, fileBfuffer);

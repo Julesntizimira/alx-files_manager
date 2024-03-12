@@ -5,17 +5,9 @@ import redisClient from '../utils/redis';
 
 class AuthController {
   static async getConnect(req, res) {
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-      const base64Token = authHeader.split(' ')[1];
-      const decodedToken = Buffer.from(base64Token, 'base64').toString('utf-8');
-      const creds = decodedToken.split(':');
-      const email = creds[0];
-      const password = creds[1];
-      if (!email || !password) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-      }
+    const base64Token = req.headers.authorization.split(' ')[1];
+    const [email, password] = Buffer.from(base64Token, 'base64').toString('utf-8').split(':');
+    if (email && password) {
       const myCollection = dbClient.client.db().collection('users');
       const user = await myCollection.findOne({ email });
       if (user) {
@@ -23,11 +15,14 @@ class AuthController {
           const authToken = uuidv4();
           await redisClient.set(`auth_${authToken}`, (user._id).toString(), 86400);
           res.status(200).json({ token: authToken });
+          return;
         }
       } else {
         res.status(401).json({ error: 'Unauthorized' });
+        return;
       }
     }
+    res.status(401).json({ error: 'Unauthorized' });
   }
 
   static async getDisconnect(req, res) {

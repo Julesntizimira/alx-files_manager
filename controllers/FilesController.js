@@ -144,7 +144,14 @@ class FilesController {
     } else {
       await fileCollection.updateOne({ _id: fileId }, { $set: { isPublic: true } });
       file.isPublic = true;
-      res.status(200).json(file);
+      res.status(200).json({
+        id: file._id,
+        userId: file.userId,
+        name: file.name,
+        type: file.type,
+        isPublic: true,
+        parentId: file.parentId,
+      });
     }
   }
 
@@ -165,7 +172,14 @@ class FilesController {
     } else {
       await fileCollection.updateOne({ _id: fileId }, { $set: { isPublic: false } });
       file.isPublic = false;
-      res.status(200).json(file);
+      res.status(200).json({
+        id: file._id,
+        userId: file.userId,
+        name: file.name,
+        type: file.type,
+        isPublic: false,
+        parentId: file.parentId,
+      });
     }
   }
 }

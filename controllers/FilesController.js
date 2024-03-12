@@ -30,7 +30,7 @@ class FilesController {
       return;
     }
     if (parentId) {
-      const parentFile = await fileCollection.findOne({ _id: parentId });
+      const parentFile = await fileCollection.findOne({ _id: new ObjectId(String(parentId)) });
       if (!parentFile) {
         res.status(400).json({ error: 'Parent not found' });
         return;

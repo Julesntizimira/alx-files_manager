@@ -29,8 +29,10 @@ class FilesController {
       res.status(400).json({ error: 'Missing data' });
       return;
     }
+    let parentIdObj;
     if (parentId) {
-      const parentFolder = await fileCollection.findOne({ _id: new ObjectId(String(parentId)) });
+      parentIdObj = new ObjectId(String(parentId));
+      const parentFolder = await fileCollection.findOne({ _id: parentIdObj });
       if (!parentFolder) {
         res.status(400).json({ error: 'Parent not found' });
         return;
@@ -39,12 +41,14 @@ class FilesController {
         res.status(400).json({ error: 'Parent is not a folder' });
         return;
       }
+    } else {
+      parentIdObj = 0;
     }
     const fileObj = {
       name, type, data, userId: owner,
     };
     fileObj.isPublic = isPublic || false;
-    fileObj.parentId = parentId || 0;
+    fileObj.parentId = parentIdObj;
     if (type === 'folder') {
       const result = await fileCollection.insertOne(fileObj);
       res.status(201).json({

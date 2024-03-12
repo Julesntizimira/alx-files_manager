@@ -98,29 +98,34 @@ class FilesController {
       return;
     }
     const owner = new ObjectId(String(userId));
-    const { parentId = 0, page = 0 } = req.query;
+    const { parentId, page = 0 } = req.query;
+    let query;
+    if (parentId) {
+      query = { parentId, userId: owner };
+    } else {
+      query = { userId: owner };
+    }
     const fileCollection = dbClient.client.db().collection('files');
     const pageSize = 20;
     const pageNumber = parseInt(page, 10);
     const pipeline = [
-      { $match: { parentId } },
-      { $match: { userId: owner } },
+      { $match: query },
       { $skip: pageNumber * pageSize },
       { $limit: pageSize },
       {
         $project: {
-          id: '$_id',
+          _id: 1,
           userId: 1,
           name: 1,
           type: 1,
           isPublic: 1,
           parentId: 1,
-          _id: 0,
         },
       },
     ];
     const files = await fileCollection.aggregate(pipeline).toArray();
-    res.status(200).json(files);
+    const newArr = files.map(({ _id, ...rest }) => ({ id: _id, ...rest }));
+    res.status(200).json(newArr);
   }
 }
 

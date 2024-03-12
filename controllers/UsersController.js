@@ -1,5 +1,5 @@
 import sha1 from 'sha1';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -29,11 +29,11 @@ class UsersController {
   }
 
   static async getMe(req, res) {
-    const token = req.headers['X-Token'];
+    const token = req.headers['x-token'];
     const userId = await redisClient.get(`auth_${token}`);
     if (userId) {
       const myCollection = dbClient.client.db().collection('users');
-      const objectId = new ObjectID(userId);
+      const objectId = new ObjectId(String(userId));
       const user = await myCollection.findOne({ _id: objectId });
       res.status(200).json({ id: userId, email: user.email });
     } else {

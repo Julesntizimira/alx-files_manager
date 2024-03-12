@@ -101,7 +101,7 @@ class FilesController {
     const { parentId, page = 0 } = req.query;
     let query;
     if (parentId) {
-      query = { parentId, userId: owner };
+      query = { parentId: new ObjectId(String(parentId)), userId: owner };
     } else {
       query = { userId: owner };
     }

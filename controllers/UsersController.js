@@ -1,7 +1,10 @@
 import sha1 from 'sha1';
 import { ObjectId } from 'mongodb';
+import Queue from 'bull';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+
+const userQueue = new Queue('userQueue');
 
 class UsersController {
   static async postNew(req, res) {
@@ -22,9 +25,9 @@ class UsersController {
       res.status(400).json({ error: 'Already exist' });
     } else {
       const hashedPassword = sha1(password);
-      myCollection.insertOne({ email, password: hashedPassword }).then((resp) => {
-        res.status(201).json({ id: resp.insertedId, email });
-      });
+      const resp = await myCollection.insertOne({ email, password: hashedPassword });
+      res.status(201).json({ id: resp.insertedId, email });
+      await userQueue.add({ userId: resp.insertedId.toString() });
     }
   }
 

@@ -5,7 +5,9 @@ import Queue from 'bull';
 import dbClient from './utils/db';
 
 const fileCollection = dbClient.client.db().collection('files');
+const userCollection = dbClient.client.db().collection('users');
 const fileQueue = new Queue('fileQueue');
+const userQueue = new Queue('userQueue');
 
 fileQueue.process(async (job, done) => {
   console.log('Processing...');
@@ -36,5 +38,18 @@ fileQueue.process(async (job, done) => {
         done(err);
       });
   }
+  done();
+});
+
+userQueue.process(async (job, done) => {
+  const { userId } = job.data;
+  if (!userId) {
+    done(new Error('Missing userId'));
+  }
+  const user = await userCollection.findOne({ _id: new ObjectId(String(userId)) });
+  if (!user) {
+    done(new Error('User not found'));
+  }
+  console.log(`Welcome ${user.email}!`);
   done();
 });

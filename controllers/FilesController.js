@@ -206,7 +206,6 @@ class FilesController {
     const fileCollection = dbClient.client.db().collection('files');
     const { id } = req.params;
     let { size } = req.query;
-    size = size.toString();
     const file = await fileCollection.findOne({ _id: new ObjectId(String(id)) });
     if (!file) {
       res.status(404).json({ error: 'Not found' });
@@ -223,7 +222,8 @@ class FilesController {
       return;
     }
     let filePath;
-    if (file.type === 'image') {
+    if ((file.type === 'image') && size) {
+      size = size.toString();
       filePath = `${file.localPath}_${size}`;
     } else {
       filePath = file.localPath;
